@@ -230,13 +230,19 @@ export default function App() {
   };
 
   const [user, setUser] = useState<{ id: number; username: string } | null>(() => {
-    const saved = localStorage.getItem('tube_sim_user');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem('tube_sim_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      console.error("Failed to parse user", e);
+      return null;
+    }
   });
   const [leaderboard, setLeaderboard] = useState<{ username: string; subscribers: number }[]>([]);
   const [authMode, setAuthMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
   const [authForm, setAuthForm] = useState({ username: '', password: '' });
   const [authError, setAuthError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   // Sync score with server periodically
   useEffect(() => {
@@ -266,6 +272,7 @@ export default function App() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setAuthError('');
+    setIsLoading(true);
     
     try {
       const endpoint = authMode === 'LOGIN' ? '/api/auth/login' : '/api/auth/register';
@@ -284,6 +291,8 @@ export default function App() {
       setScreen('MENU');
     } catch (err: any) {
       setAuthError(err.message);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -296,53 +305,96 @@ export default function App() {
       
       {screen === 'AUTH' ? (
         <div className="flex flex-col items-center justify-center h-full p-8 space-y-8 relative z-10">
-          <div className="text-center space-y-2">
-            <h1 className="text-2xl font-black tracking-tighter uppercase glitch-text">
-              TubeSim Access
-            </h1>
-            <p className="text-xs font-mono text-zinc-500 tracking-[0.3em] uppercase">
-              Authentication Required
-            </p>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent opacity-50 pointer-events-none" />
+          
+          <div className="text-center space-y-4">
+            <div className="w-20 h-20 mx-auto bg-zinc-900 rounded-2xl border border-zinc-800 flex items-center justify-center shadow-2xl relative overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
+              <Video className="w-8 h-8 text-blue-500" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black tracking-tighter uppercase text-white">
+                TubeSim
+              </h1>
+              <p className="text-[10px] font-mono text-zinc-500 tracking-[0.3em] uppercase mt-1">
+                System Login
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full bg-zinc-900/50 backdrop-blur-sm border border-zinc-800 rounded-2xl p-1">
+            <div className="grid grid-cols-2 gap-1">
+              <button
+                onClick={() => setAuthMode('LOGIN')}
+                className={cn(
+                  "py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all",
+                  authMode === 'LOGIN' ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+                )}
+              >
+                Login
+              </button>
+              <button
+                onClick={() => setAuthMode('REGISTER')}
+                className={cn(
+                  "py-2 text-xs font-bold uppercase tracking-wider rounded-xl transition-all",
+                  authMode === 'REGISTER' ? "bg-zinc-800 text-white shadow-sm" : "text-zinc-500 hover:text-zinc-300"
+                )}
+              >
+                Register
+              </button>
+            </div>
           </div>
 
           <form onSubmit={handleAuth} className="w-full space-y-4">
-            <div className="space-y-2">
-              <input
-                type="text"
-                placeholder="USERNAME"
-                value={authForm.username}
-                onChange={e => setAuthForm({ ...authForm, username: e.target.value })}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm font-mono focus:border-blue-500 focus:outline-none transition-colors"
-                required
-              />
-              <input
-                type="password"
-                placeholder="PASSWORD"
-                value={authForm.password}
-                onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm font-mono focus:border-blue-500 focus:outline-none transition-colors"
-                required
-              />
+            <div className="space-y-3">
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono uppercase text-zinc-500 ml-1">Username</label>
+                <input
+                  type="text"
+                  value={authForm.username}
+                  onChange={e => setAuthForm({ ...authForm, username: e.target.value })}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm font-bold text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 focus:outline-none transition-all placeholder:text-zinc-700"
+                  placeholder="ENTER_ID"
+                  required
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-mono uppercase text-zinc-500 ml-1">Password</label>
+                <input
+                  type="password"
+                  value={authForm.password}
+                  onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
+                  className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm font-bold text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50 focus:outline-none transition-all placeholder:text-zinc-700"
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
             </div>
 
             {authError && (
-              <p className="text-red-500 text-xs font-mono text-center">{authError}</p>
+              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+                <p className="text-red-400 text-[10px] font-mono text-center uppercase tracking-wide flex items-center justify-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  {authError}
+                </p>
+              </div>
             )}
 
             <button 
               type="submit"
-              className="w-full py-4 btn-cold btn-primary rounded-xl font-bold text-sm tracking-widest uppercase"
+              disabled={isLoading}
+              className="w-full py-4 btn-cold btn-primary rounded-xl font-bold text-sm tracking-widest uppercase flex items-center justify-center gap-2 group"
             >
-              {authMode === 'LOGIN' ? 'Login' : 'Register'}
+              {isLoading ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  {authMode === 'LOGIN' ? 'Connect' : 'Initialize Account'}
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </button>
           </form>
-
-          <button 
-            onClick={() => setAuthMode(m => m === 'LOGIN' ? 'REGISTER' : 'LOGIN')}
-            className="text-xs text-zinc-500 hover:text-zinc-300 underline underline-offset-4"
-          >
-            {authMode === 'LOGIN' ? 'Create New Account' : 'Back to Login'}
-          </button>
         </div>
       ) : screen === 'LEADERBOARD' ? (
         <div className="flex flex-col h-full p-6 space-y-6 relative z-10">
