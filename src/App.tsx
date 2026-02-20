@@ -229,14 +229,146 @@ export default function App() {
     return Math.floor(num).toString();
   };
 
-  const [screen, setScreen] = useState<'MENU' | 'GAME'>('MENU');
+  const [user, setUser] = useState<{ id: number; username: string } | null>(() => {
+    const saved = localStorage.getItem('tube_sim_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [leaderboard, setLeaderboard] = useState<{ username: string; subscribers: number }[]>([]);
+  const [authMode, setAuthMode] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
+  const [authForm, setAuthForm] = useState({ username: '', password: '' });
+  const [authError, setAuthError] = useState('');
+
+  // Sync score with server periodically
+  useEffect(() => {
+    if (!user) return;
+    
+    const syncInterval = setInterval(() => {
+      fetch('/api/score/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: user.id,
+          subscribers: gameState.subscribers,
+          views: gameState.views
+        })
+      });
+    }, 30000); // Sync every 30s
+
+    return () => clearInterval(syncInterval);
+  }, [user, gameState.subscribers, gameState.views]);
+
+  const fetchLeaderboard = async () => {
+    const res = await fetch('/api/leaderboard');
+    const data = await res.json();
+    setLeaderboard(data);
+  };
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    
+    try {
+      const endpoint = authMode === 'LOGIN' ? '/api/auth/login' : '/api/auth/register';
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(authForm)
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) throw new Error(data.error);
+      
+      setUser(data);
+      localStorage.setItem('tube_sim_user', JSON.stringify(data));
+      setScreen('MENU');
+    } catch (err: any) {
+      setAuthError(err.message);
+    }
+  };
+
+  const [screen, setScreen] = useState<'AUTH' | 'MENU' | 'GAME' | 'LEADERBOARD'>(user ? 'MENU' : 'AUTH');
 
   // ... existing state ...
 
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-[#0A0A0B] text-zinc-100 overflow-hidden border-x border-zinc-800 shadow-2xl relative">
       
-      {screen === 'MENU' ? (
+      {screen === 'AUTH' ? (
+        <div className="flex flex-col items-center justify-center h-full p-8 space-y-8 relative z-10">
+          <div className="text-center space-y-2">
+            <h1 className="text-2xl font-black tracking-tighter uppercase glitch-text">
+              TubeSim Access
+            </h1>
+            <p className="text-xs font-mono text-zinc-500 tracking-[0.3em] uppercase">
+              Authentication Required
+            </p>
+          </div>
+
+          <form onSubmit={handleAuth} className="w-full space-y-4">
+            <div className="space-y-2">
+              <input
+                type="text"
+                placeholder="USERNAME"
+                value={authForm.username}
+                onChange={e => setAuthForm({ ...authForm, username: e.target.value })}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm font-mono focus:border-blue-500 focus:outline-none transition-colors"
+                required
+              />
+              <input
+                type="password"
+                placeholder="PASSWORD"
+                value={authForm.password}
+                onChange={e => setAuthForm({ ...authForm, password: e.target.value })}
+                className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-4 text-sm font-mono focus:border-blue-500 focus:outline-none transition-colors"
+                required
+              />
+            </div>
+
+            {authError && (
+              <p className="text-red-500 text-xs font-mono text-center">{authError}</p>
+            )}
+
+            <button 
+              type="submit"
+              className="w-full py-4 btn-cold btn-primary rounded-xl font-bold text-sm tracking-widest uppercase"
+            >
+              {authMode === 'LOGIN' ? 'Login' : 'Register'}
+            </button>
+          </form>
+
+          <button 
+            onClick={() => setAuthMode(m => m === 'LOGIN' ? 'REGISTER' : 'LOGIN')}
+            className="text-xs text-zinc-500 hover:text-zinc-300 underline underline-offset-4"
+          >
+            {authMode === 'LOGIN' ? 'Create New Account' : 'Back to Login'}
+          </button>
+        </div>
+      ) : screen === 'LEADERBOARD' ? (
+        <div className="flex flex-col h-full p-6 space-y-6 relative z-10">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold uppercase tracking-widest">Top Creators</h2>
+            <button onClick={() => setScreen('MENU')} className="p-2 rounded-full hover:bg-zinc-800">
+              <ChevronRight className="w-6 h-6 rotate-180" />
+            </button>
+          </div>
+
+          <div className="space-y-2 overflow-y-auto pb-20">
+            {leaderboard.map((entry, i) => (
+              <div key={i} className="hardware-panel p-4 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className={cn(
+                    "font-mono font-bold text-lg w-8",
+                    i === 0 ? "text-amber-400" : i === 1 ? "text-zinc-300" : i === 2 ? "text-amber-700" : "text-zinc-600"
+                  )}>#{i + 1}</span>
+                  <span className="font-bold">{entry.username}</span>
+                </div>
+                <span className="font-mono text-xs text-zinc-400">{formatNumber(entry.subscribers)} subs</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : screen === 'MENU' ? (
         <div className="flex flex-col items-center justify-center h-full p-8 space-y-12 relative z-10">
           <div className="text-center space-y-2">
             <div className="w-24 h-24 mx-auto bg-zinc-900 rounded-3xl border border-zinc-800 flex items-center justify-center mb-6 shadow-2xl relative overflow-hidden group">
@@ -250,6 +382,7 @@ export default function App() {
             <p className="text-xs font-mono text-zinc-500 tracking-[0.3em] uppercase">
               Cold Studio
             </p>
+            {user && <p className="text-xs text-blue-400 pt-2">Logged in as {user.username}</p>}
           </div>
 
           <div className="w-full space-y-4">
@@ -261,14 +394,28 @@ export default function App() {
               Initialize
             </button>
             
-            <button className="w-full py-4 btn-cold rounded-xl font-bold text-sm tracking-widest uppercase text-zinc-400 hover:text-white flex items-center justify-center gap-3">
-              <Settings className="w-4 h-4" />
-              System Config
+            <button 
+              onClick={() => { fetchLeaderboard(); setScreen('LEADERBOARD'); }}
+              className="w-full py-4 btn-cold rounded-xl font-bold text-sm tracking-widest uppercase text-zinc-400 hover:text-white flex items-center justify-center gap-3"
+            >
+              <Award className="w-4 h-4" />
+              Leaderboard
+            </button>
+
+            <button 
+              onClick={() => {
+                localStorage.removeItem('tube_sim_user');
+                setUser(null);
+                setScreen('AUTH');
+              }}
+              className="w-full py-4 btn-cold rounded-xl font-bold text-sm tracking-widest uppercase text-red-900/50 hover:text-red-500 flex items-center justify-center gap-3"
+            >
+              Logout
             </button>
 
             <div className="pt-8 text-center">
               <p className="text-[10px] text-zinc-600 font-mono">
-                V 1.0.0 // BUILD 2026
+                V 1.1.0 // ONLINE
               </p>
             </div>
           </div>
