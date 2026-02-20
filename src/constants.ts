@@ -3,8 +3,8 @@ import { Upgrade, ContentType } from './types';
 export const INITIAL_UPGRADES: Upgrade[] = [
   {
     id: 'camera_1',
-    name: 'Webcam 720p',
-    description: 'Better resolution means more views.',
+    name: 'Веб-камера 720p',
+    description: 'Лучшее качество — больше просмотров.',
     baseCost: 15,
     multiplier: 1.15,
     type: 'views',
@@ -14,8 +14,8 @@ export const INITIAL_UPGRADES: Upgrade[] = [
   },
   {
     id: 'mic_1',
-    name: 'USB Microphone',
-    description: 'Clearer audio keeps people watching.',
+    name: 'USB Микрофон',
+    description: 'Чистый звук удерживает зрителей.',
     baseCost: 50,
     multiplier: 1.2,
     type: 'views',
@@ -25,8 +25,8 @@ export const INITIAL_UPGRADES: Upgrade[] = [
   },
   {
     id: 'lighting_1',
-    name: 'Ring Light',
-    description: 'Professional look attracts subscribers.',
+    name: 'Кольцевая лампа',
+    description: 'Проф. вид привлекает подписчиков.',
     baseCost: 200,
     multiplier: 1.25,
     type: 'subscribers',
@@ -36,8 +36,8 @@ export const INITIAL_UPGRADES: Upgrade[] = [
   },
   {
     id: 'editor_1',
-    name: 'Basic Editing Software',
-    description: 'Better cuts mean more engagement.',
+    name: 'Софт для монтажа',
+    description: 'Лучшие склейки — выше вовлечение.',
     baseCost: 500,
     multiplier: 1.3,
     type: 'money',
@@ -47,8 +47,8 @@ export const INITIAL_UPGRADES: Upgrade[] = [
   },
   {
     id: 'pc_1',
-    name: 'Mid-range PC',
-    description: 'Faster rendering for more content.',
+    name: 'Средний ПК',
+    description: 'Быстрый рендер — больше контента.',
     baseCost: 1200,
     multiplier: 1.35,
     type: 'views',
@@ -61,7 +61,7 @@ export const INITIAL_UPGRADES: Upgrade[] = [
 export const CONTENT_TYPES: ContentType[] = [
   {
     id: 'vlog',
-    name: 'Daily Vlog',
+    name: 'Дейли Влог',
     baseViews: 10,
     baseMoney: 0.5,
     duration: 5,
@@ -69,7 +69,7 @@ export const CONTENT_TYPES: ContentType[] = [
   },
   {
     id: 'gaming',
-    name: 'Gaming Let\'s Play',
+    name: 'Летсплей',
     baseViews: 50,
     baseMoney: 2,
     duration: 15,
@@ -77,7 +77,7 @@ export const CONTENT_TYPES: ContentType[] = [
   },
   {
     id: 'tech_review',
-    name: 'Tech Review',
+    name: 'Техно Обзор',
     baseViews: 200,
     baseMoney: 10,
     duration: 30,
@@ -85,7 +85,7 @@ export const CONTENT_TYPES: ContentType[] = [
   },
   {
     id: 'documentary',
-    name: 'Video Essay',
+    name: 'Видео Эссе',
     baseViews: 1000,
     baseMoney: 50,
     duration: 60,
