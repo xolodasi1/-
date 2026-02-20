@@ -1,0 +1,21 @@
+{
+  "short_name": "TubeSim",
+  "name": "TubeSim: Cold Studio",
+  "icons": [
+    {
+      "src": "https://picsum.photos/192/192",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://picsum.photos/512/512",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#0A0A0B",
+  "background_color": "#0A0A0B",
+  "orientation": "portrait"
+}
