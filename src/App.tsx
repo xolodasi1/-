@@ -229,246 +229,297 @@ export default function App() {
     return Math.floor(num).toString();
   };
 
+  const [screen, setScreen] = useState<'MENU' | 'GAME'>('MENU');
+
+  // ... existing state ...
+
   return (
     <div className="flex flex-col h-screen max-w-md mx-auto bg-[#0A0A0B] text-zinc-100 overflow-hidden border-x border-zinc-800 shadow-2xl relative">
-      {/* Header / Stats Panel */}
-      <header className={cn(
-        "p-6 pt-8 space-y-4 hardware-panel border-t-0 rounded-b-3xl relative transition-all duration-500",
-        isViral && "border-amber-500/50 viral-glow"
-      )}>
-        {/* Hardware Screws */}
-        <div className="absolute top-2 left-2 hardware-screw" />
-        <div className="absolute top-2 right-2 hardware-screw" />
-        
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className={cn(
-              "text-xs font-mono uppercase tracking-[0.2em] mb-1 transition-colors",
-              isViral ? "text-amber-500 glitch-text" : "text-zinc-500"
-            )}>
-              {isViral ? "Viral Protocol Active" : "Studio Status"}
+      
+      {screen === 'MENU' ? (
+        <div className="flex flex-col items-center justify-center h-full p-8 space-y-12 relative z-10">
+          <div className="text-center space-y-2">
+            <div className="w-24 h-24 mx-auto bg-zinc-900 rounded-3xl border border-zinc-800 flex items-center justify-center mb-6 shadow-2xl relative overflow-hidden group">
+              <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/50 to-transparent" />
+              <Video className="w-10 h-10 text-zinc-500 group-hover:text-blue-500 transition-colors duration-500" />
+              <div className="absolute bottom-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            </div>
+            <h1 className="text-3xl font-black tracking-tighter uppercase glitch-text">
+              TubeSim
             </h1>
-            <div className="flex items-center gap-2">
-              <div className={cn(
-                "w-2 h-2 rounded-full animate-pulse",
-                isViral ? "bg-amber-500" : "bg-emerald-500"
-              )} />
-              <span className={cn(
-                "text-sm font-medium",
-                isViral ? "text-amber-500" : "text-emerald-500"
-              )}>
-                {isViral ? `BOOST: ${viralTimer}s` : "LIVE"}
-              </span>
-            </div>
-          </div>
-          <button className="p-2 rounded-full hover:bg-zinc-800 transition-colors">
-            <Settings className="w-5 h-5 text-zinc-400" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-3 gap-4">
-          <div className="space-y-1">
-            <span className="text-[10px] font-mono uppercase text-zinc-500 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" /> Views
-            </span>
-            <div className={cn(
-              "text-xl font-bold tracking-tight transition-colors",
-              isViral && "text-amber-400"
-            )}>{formatNumber(gameState.views)}</div>
-          </div>
-          <div className="space-y-1">
-            <span className="text-[10px] font-mono uppercase text-zinc-500 flex items-center gap-1">
-              <Users className="w-3 h-3" /> Subs
-            </span>
-            <div className="text-xl font-bold tracking-tight">{formatNumber(gameState.subscribers)}</div>
-          </div>
-          <div className="space-y-1">
-            <span className="text-[10px] font-mono uppercase text-zinc-500 flex items-center gap-1">
-              <DollarSign className="w-3 h-3" /> Balance
-            </span>
-            <div className="text-xl font-bold tracking-tight text-emerald-400">${gameState.money.toFixed(2)}</div>
-          </div>
-        </div>
-
-        {/* LCD Display for passive rates */}
-        <div className="lcd-display p-2 rounded text-[10px] flex justify-between px-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none" />
-          <span>V/SEC: {(getPassiveViews() * (isViral ? 3 : 1)).toFixed(1)}</span>
-          <span>S/SEC: {getPassiveSubs().toFixed(2)}</span>
-          <span>MULT: x{(getMoneyMultiplier() * (isViral ? 3 : 1)).toFixed(1)}</span>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-6 space-y-8 pb-24">
-        
-        {/* Active Production Control */}
-        {activeVideo && (
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-mono uppercase tracking-widest text-blue-400">Active Session</h2>
-              <Zap className="w-4 h-4 text-blue-400 animate-pulse" />
-            </div>
-            <div className="hardware-panel p-6 rounded-3xl border-blue-500/30 bg-blue-500/5 flex flex-col items-center gap-4">
-              <div className="text-center">
-                <p className="text-[10px] font-mono uppercase text-blue-400 mb-1">Editing in progress...</p>
-                <h3 className="text-lg font-bold">{CONTENT_TYPES.find(c => c.id === activeVideo.id)?.name}</h3>
-              </div>
-              
-              <button 
-                onClick={manualEdit}
-                className="w-32 h-32 rounded-full btn-cold btn-primary flex flex-col items-center justify-center gap-2 border-4 border-blue-400/20"
-              >
-                <Scissors className="w-8 h-8" />
-                <span className="text-[10px] font-bold uppercase tracking-tighter">CLICK TO EDIT</span>
-              </button>
-
-              <div className="w-full space-y-1">
-                <div className="flex justify-between text-[10px] font-mono text-zinc-500">
-                  <span>PROGRESS</span>
-                  <span>{Math.floor(activeVideo.progress)}%</span>
-                </div>
-                <div className="h-2 w-full progress-bar-bg rounded-full overflow-hidden">
-                  <motion.div 
-                    className="h-full progress-bar-fill bg-blue-400"
-                    animate={{ width: `${activeVideo.progress}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Production Section */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Content Library</h2>
-            <Video className="w-4 h-4 text-zinc-600" />
+            <p className="text-xs font-mono text-zinc-500 tracking-[0.3em] uppercase">
+              Cold Studio
+            </p>
           </div>
 
-          <div className="space-y-3">
-            {CONTENT_TYPES.map(type => {
-              const isLocked = gameState.subscribers < type.unlockedAtSubs;
-              const isActive = activeVideo?.id === type.id;
-              
-              return (
-                <div 
-                  key={type.id}
-                  className={cn(
-                    "hardware-panel p-4 rounded-2xl transition-all relative overflow-hidden",
-                    isLocked ? "opacity-40 grayscale" : "hover:border-zinc-600",
-                    isActive && "border-blue-500/50 opacity-50 pointer-events-none"
-                  )}
-                >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold text-sm">{type.name}</h3>
-                      <p className="text-[10px] text-zinc-500">
-                        {isLocked ? `Unlocks at ${formatNumber(type.unlockedAtSubs)} subs` : `Base: ${formatNumber(type.baseViews)} views`}
-                      </p>
-                    </div>
-                    {!isLocked && (
-                      <button 
-                        onClick={() => startVideo(type.id)}
-                        disabled={!!activeVideo}
-                        className="btn-cold px-6 py-2 rounded-xl text-xs font-bold text-white"
-                      >
-                        RECORD
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Upgrades Section */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Hardware Upgrades</h2>
-            <BarChart3 className="w-4 h-4 text-zinc-600" />
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            {gameState.upgrades.map(upgrade => {
-              const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.multiplier, upgrade.level));
-              const canAfford = gameState.money >= cost;
-
-              return (
-                <button
-                  key={upgrade.id}
-                  onClick={() => buyUpgrade(upgrade.id)}
-                  disabled={!canAfford}
-                  className={cn(
-                    "hardware-panel p-4 rounded-2xl flex items-center gap-4 text-left transition-all group",
-                    !canAfford && "opacity-60"
-                  )}
-                >
-                  <div className={cn(
-                    "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
-                    canAfford ? "bg-zinc-800 text-blue-400 group-hover:bg-blue-500 group-hover:text-white" : "bg-zinc-900 text-zinc-600"
-                  )}>
-                    {ICON_MAP[upgrade.icon]}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-semibold text-sm">{upgrade.name}</h3>
-                      <span className="text-[10px] font-mono text-zinc-500">LVL {upgrade.level}</span>
-                    </div>
-                    <p className="text-[10px] text-zinc-500 line-clamp-1 mb-1">{upgrade.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className={cn(
-                        "text-xs font-bold",
-                        canAfford ? "text-emerald-400" : "text-zinc-500"
-                      )}>${cost}</span>
-                      <ChevronRight className="w-3 h-3 text-zinc-700" />
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
-      </main>
-
-      {/* Footer Navigation */}
-      <nav className="absolute bottom-0 left-0 right-0 p-4 hardware-panel border-b-0 rounded-t-3xl flex justify-around items-center">
-        <button className="flex flex-col items-center gap-1 text-blue-500">
-          <Video className="w-6 h-6" />
-          <span className="text-[10px] font-bold uppercase">Studio</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors">
-          <BarChart3 className="w-6 h-6" />
-          <span className="text-[10px] font-bold uppercase">Stats</span>
-        </button>
-        <button className="flex flex-col items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors">
-          <Award className="w-6 h-6" />
-          <span className="text-[10px] font-bold uppercase">Awards</span>
-        </button>
-      </nav>
-
-      {/* Notifications Overlay */}
-      <div className="absolute top-24 left-0 right-0 flex flex-col items-center gap-2 pointer-events-none z-50">
-        <AnimatePresence>
-          {notifications.map(n => (
-            <motion.div
-              key={n.id}
-              initial={{ opacity: 0, y: -20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="bg-zinc-900/90 backdrop-blur border border-zinc-800 px-4 py-2 rounded-full shadow-xl text-xs font-medium text-zinc-200"
+          <div className="w-full space-y-4">
+            <button 
+              onClick={() => setScreen('GAME')}
+              className="w-full py-4 btn-cold btn-primary rounded-xl font-bold text-sm tracking-widest uppercase flex items-center justify-center gap-3 group"
             >
-              {n.text}
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      </div>
+              <Play className="w-4 h-4 fill-current" />
+              Initialize
+            </button>
+            
+            <button className="w-full py-4 btn-cold rounded-xl font-bold text-sm tracking-widest uppercase text-zinc-400 hover:text-white flex items-center justify-center gap-3">
+              <Settings className="w-4 h-4" />
+              System Config
+            </button>
+
+            <div className="pt-8 text-center">
+              <p className="text-[10px] text-zinc-600 font-mono">
+                V 1.0.0 // BUILD 2026
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Header / Stats Panel */}
+          <header className={cn(
+            "p-6 pt-8 space-y-4 hardware-panel border-t-0 rounded-b-3xl relative transition-all duration-500",
+            isViral && "border-amber-500/50 viral-glow"
+          )}>
+            {/* ... existing header content ... */}
+            {/* Hardware Screws */}
+            <div className="absolute top-2 left-2 hardware-screw" />
+            <div className="absolute top-2 right-2 hardware-screw" />
+            
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className={cn(
+                  "text-xs font-mono uppercase tracking-[0.2em] mb-1 transition-colors",
+                  isViral ? "text-amber-500 glitch-text" : "text-zinc-500"
+                )}>
+                  {isViral ? "Viral Protocol Active" : "Studio Status"}
+                </h1>
+                <div className="flex items-center gap-2">
+                  <div className={cn(
+                    "w-2 h-2 rounded-full animate-pulse",
+                    isViral ? "bg-amber-500" : "bg-emerald-500"
+                  )} />
+                  <span className={cn(
+                    "text-sm font-medium",
+                    isViral ? "text-amber-500" : "text-emerald-500"
+                  )}>
+                    {isViral ? `BOOST: ${viralTimer}s` : "LIVE"}
+                  </span>
+                </div>
+              </div>
+              <button 
+                onClick={() => setScreen('MENU')}
+                className="p-2 rounded-full hover:bg-zinc-800 transition-colors"
+              >
+                <Settings className="w-5 h-5 text-zinc-400" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono uppercase text-zinc-500 flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3" /> Views
+                </span>
+                <div className={cn(
+                  "text-xl font-bold tracking-tight transition-colors",
+                  isViral && "text-amber-400"
+                )}>{formatNumber(gameState.views)}</div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono uppercase text-zinc-500 flex items-center gap-1">
+                  <Users className="w-3 h-3" /> Subs
+                </span>
+                <div className="text-xl font-bold tracking-tight">{formatNumber(gameState.subscribers)}</div>
+              </div>
+              <div className="space-y-1">
+                <span className="text-[10px] font-mono uppercase text-zinc-500 flex items-center gap-1">
+                  <DollarSign className="w-3 h-3" /> Balance
+                </span>
+                <div className="text-xl font-bold tracking-tight text-emerald-400">${gameState.money.toFixed(2)}</div>
+              </div>
+            </div>
+
+            {/* LCD Display for passive rates */}
+            <div className="lcd-display p-2 rounded text-[10px] flex justify-between px-4 relative overflow-hidden">
+              <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none" />
+              <span>V/SEC: {(getPassiveViews() * (isViral ? 3 : 1)).toFixed(1)}</span>
+              <span>S/SEC: {getPassiveSubs().toFixed(2)}</span>
+              <span>MULT: x{(getMoneyMultiplier() * (isViral ? 3 : 1)).toFixed(1)}</span>
+            </div>
+          </header>
+
+          {/* Main Content Area */}
+          <main className="flex-1 overflow-y-auto p-6 space-y-8 pb-24">
+            
+            {/* Active Production Control */}
+            {activeVideo && (
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs font-mono uppercase tracking-widest text-blue-400">Active Session</h2>
+                  <Zap className="w-4 h-4 text-blue-400 animate-pulse" />
+                </div>
+                <div className="hardware-panel p-6 rounded-3xl border-blue-500/30 bg-blue-500/5 flex flex-col items-center gap-4">
+                  <div className="text-center">
+                    <p className="text-[10px] font-mono uppercase text-blue-400 mb-1">Editing in progress...</p>
+                    <h3 className="text-lg font-bold">{CONTENT_TYPES.find(c => c.id === activeVideo.id)?.name}</h3>
+                  </div>
+                  
+                  <button 
+                    onClick={manualEdit}
+                    className="w-32 h-32 rounded-full btn-cold btn-primary flex flex-col items-center justify-center gap-2 border-4 border-blue-400/20"
+                  >
+                    <Scissors className="w-8 h-8" />
+                    <span className="text-[10px] font-bold uppercase tracking-tighter">CLICK TO EDIT</span>
+                  </button>
+
+                  <div className="w-full space-y-1">
+                    <div className="flex justify-between text-[10px] font-mono text-zinc-500">
+                      <span>PROGRESS</span>
+                      <span>{Math.floor(activeVideo.progress)}%</span>
+                    </div>
+                    <div className="h-2 w-full progress-bar-bg rounded-full overflow-hidden">
+                      <motion.div 
+                        className="h-full progress-bar-fill bg-blue-400"
+                        animate={{ width: `${activeVideo.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Production Section */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Content Library</h2>
+                <Video className="w-4 h-4 text-zinc-600" />
+              </div>
+
+              <div className="space-y-3">
+                {CONTENT_TYPES.map(type => {
+                  const isLocked = gameState.subscribers < type.unlockedAtSubs;
+                  const isActive = activeVideo?.id === type.id;
+                  
+                  return (
+                    <div 
+                      key={type.id}
+                      className={cn(
+                        "hardware-panel p-4 rounded-2xl transition-all relative overflow-hidden",
+                        isLocked ? "opacity-40 grayscale" : "hover:border-zinc-600",
+                        isActive && "border-blue-500/50 opacity-50 pointer-events-none"
+                      )}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <h3 className="font-semibold text-sm">{type.name}</h3>
+                          <p className="text-[10px] text-zinc-500">
+                            {isLocked ? `Unlocks at ${formatNumber(type.unlockedAtSubs)} subs` : `Base: ${formatNumber(type.baseViews)} views`}
+                          </p>
+                        </div>
+                        {!isLocked && (
+                          <button 
+                            onClick={() => startVideo(type.id)}
+                            disabled={!!activeVideo}
+                            className="btn-cold px-6 py-2 rounded-xl text-xs font-bold text-white"
+                          >
+                            RECORD
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Upgrades Section */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-mono uppercase tracking-widest text-zinc-500">Hardware Upgrades</h2>
+                <BarChart3 className="w-4 h-4 text-zinc-600" />
+              </div>
+
+              <div className="grid grid-cols-1 gap-3">
+                {gameState.upgrades.map(upgrade => {
+                  const cost = Math.floor(upgrade.baseCost * Math.pow(upgrade.multiplier, upgrade.level));
+                  const canAfford = gameState.money >= cost;
+
+                  return (
+                    <button
+                      key={upgrade.id}
+                      onClick={() => buyUpgrade(upgrade.id)}
+                      disabled={!canAfford}
+                      className={cn(
+                        "hardware-panel p-4 rounded-2xl flex items-center gap-4 text-left transition-all group",
+                        !canAfford && "opacity-60"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
+                        canAfford ? "bg-zinc-800 text-blue-400 group-hover:bg-blue-500 group-hover:text-white" : "bg-zinc-900 text-zinc-600"
+                      )}>
+                        {ICON_MAP[upgrade.icon]}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <h3 className="font-semibold text-sm">{upgrade.name}</h3>
+                          <span className="text-[10px] font-mono text-zinc-500">LVL {upgrade.level}</span>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 line-clamp-1 mb-1">{upgrade.description}</p>
+                        <div className="flex items-center justify-between">
+                          <span className={cn(
+                            "text-xs font-bold",
+                            canAfford ? "text-emerald-400" : "text-zinc-500"
+                          )}>${cost}</span>
+                          <ChevronRight className="w-3 h-3 text-zinc-700" />
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          </main>
+
+          {/* Footer Navigation */}
+          <nav className="absolute bottom-0 left-0 right-0 p-4 hardware-panel border-b-0 rounded-t-3xl flex justify-around items-center">
+            <button className="flex flex-col items-center gap-1 text-blue-500">
+              <Video className="w-6 h-6" />
+              <span className="text-[10px] font-bold uppercase">Studio</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors">
+              <BarChart3 className="w-6 h-6" />
+              <span className="text-[10px] font-bold uppercase">Stats</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 text-zinc-500 hover:text-zinc-300 transition-colors">
+              <Award className="w-6 h-6" />
+              <span className="text-[10px] font-bold uppercase">Awards</span>
+            </button>
+          </nav>
+
+          {/* Notifications Overlay */}
+          <div className="absolute top-24 left-0 right-0 flex flex-col items-center gap-2 pointer-events-none z-50">
+            <AnimatePresence>
+              {notifications.map(n => (
+                <motion.div
+                  key={n.id}
+                  initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="bg-zinc-900/90 backdrop-blur border border-zinc-800 px-4 py-2 rounded-full shadow-xl text-xs font-medium text-zinc-200"
+                >
+                  {n.text}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </>
+      )}
 
       {/* CRT Scanline Effect Overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.03] overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03] overflow-hidden z-50">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,118,0.06))] bg-[length:100%_2px,3px_100%]" />
       </div>
     </div>
   );
+
 }
